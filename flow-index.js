@@ -139,18 +139,8 @@ function removeImplementedInterfaces(removedNodes, node, ast) {
 
 // Append node to the list of removed nodes, ensuring the order of the nodes
 // in the list.
-function removeNode(removedNodes, node) {
-  var length = removedNodes.length;
-  var index = length;
-  while (index > 0 && removedNodes[index - 1].end > node.start) {
-    index--;
-  }
-  if (index === length) {
-    removedNodes.push(node);
-  } else {
-    removedNodes.splice(index, 0, node);
-  }
-  return false;
+function removeNode(editor, node) {
+  editor.remove(node.start, node.end);
 }
 
 // Given the AST output of babylon parse, walk through in a depth-first order,
@@ -224,3 +214,7 @@ function space(size) {
   }
   return result;
 }
+
+
+// PATCH
+module.exports.removeFlowVisitor = removeFlowVisitor;

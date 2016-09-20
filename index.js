@@ -46,7 +46,9 @@ function asyncToGen(source, options) {
   ast.shouldIncludeHelper = !(options && options.includeHelper === false);
   var sourceMap = options && options.sourceMap === true;
 
-  visit(ast, editor, asyncToGenVisitor, sourceMap);
+  // PATCH
+  var removeFlowVisitor = require('./flow-index').removeFlowVisitor;
+  visit(ast, editor, Object.assign({}, asyncToGenVisitor, removeFlowVisitor), sourceMap);
 
   editor.isEdited = Boolean(ast.containsAsync || ast.containsAsyncGen);
   editor.containsAsync = Boolean(ast.containsAsync);
@@ -458,8 +460,19 @@ function visit(ast, editor, visitor, sourceMap) {
             editor.addSourcemapLocation(node.start);
             editor.addSourcemapLocation(node.end);
           }
-          var visitFn = visitor[node.type] && visitor[node.type].enter;
-          visitFn && visitFn(editor, node, ast, stack);
+
+          // PATCH
+          var visitObj = visitor[node.type];
+          var visitFn;
+          if (visitObj && visitObj.enter) {
+            visitFn = visitObj.enter;
+            visitFn && visitFn(editor, node, ast, stack);
+          } else if (typeof visitObj === 'function') {
+            visitFn = visitObj;
+            if (visitFn && visitFn(editor, node, ast) === false) {
+              continue
+            }
+          }
         }
       }
     }
